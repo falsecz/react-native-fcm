@@ -20,6 +20,10 @@ import android.content.SharedPreferences;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 
 
@@ -108,14 +112,19 @@ public class FIRLocalMessagingHelper {
             notification.setSmallIcon(smallIconResId);
 
             //large icon
-            String largeIcon = bundle.getString("large-icon");
+            String largeIcon = bundle.getString("large_icon");
             if(largeIcon != null){
                 int largeIconResId = res.getIdentifier(largeIcon, "mipmap", packageName);
                 Bitmap largeIconBitmap = BitmapFactory.decodeResource(res, largeIconResId);
 
                 if (largeIconResId != 0 && (largeIcon != null || android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP)) {
                     notification.setLargeIcon(largeIconBitmap);
+                } else if (largeIcon.startsWith("http")) {
+                    try {
+                        notification.setLargeIcon(getBitmapFromURL(largeIcon));
+                    } catch (Exception e) {}
                 }
+
             }
 
             //big text
@@ -149,8 +158,9 @@ public class FIRLocalMessagingHelper {
                     notification.setVibrate(null);
                 }
             }
+            // NEVIM k cemu to je
 
-            if(mIsForeground){
+            if(false && mIsForeground){
                 Log.d(TAG, "App is in foreground, broadcast intent instead");
                 Intent i = new Intent("com.evollu.react.fcm.ReceiveLocalNotification");
                 i.putExtras(bundle);
@@ -187,6 +197,20 @@ public class FIRLocalMessagingHelper {
             }
         } catch (Exception e) {
             Log.e(TAG, "failed to send local notification", e);
+        }
+    }
+
+    private Bitmap getBitmapFromURL(String src) {
+        try {
+            URL url = new URL(src);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            Bitmap myBitmap = BitmapFactory.decodeStream(input);
+            return myBitmap;
+        } catch (IOException e) {
+            return null;
         }
     }
 

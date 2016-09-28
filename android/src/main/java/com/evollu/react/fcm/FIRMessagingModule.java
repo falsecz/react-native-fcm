@@ -131,7 +131,7 @@ public class FIRMessagingModule extends ReactContextBaseJavaModule implements Li
     @ReactMethod
     public void send(String senderId, ReadableMap payload) throws Exception {
         FirebaseMessaging fm = FirebaseMessaging.getInstance();
-        RemoteMessage.Builder message = new RemoteMessage.Builder(senderId + "@gcm.googleapis.com")
+            RemoteMessage.Builder message = new RemoteMessage.Builder(senderId + "@gcm.googleapis.com")
             .setMessageId(UUID.randomUUID().toString());
 
         ReadableMapKeySetIterator iterator = payload.keySetIterator();
@@ -140,6 +140,7 @@ public class FIRMessagingModule extends ReactContextBaseJavaModule implements Li
             String value = getStringFromReadableMap(payload, key);
             message.addData(key, value);
         }
+        
         fm.send(message.build());
     }
 
